@@ -20,15 +20,15 @@
 #include <Arduino.h>
 
 #include <ESP32Servo.h> // by Kevin Harrington
-#include <ESPAsyncWebSrv.h> // by dvarrel
+#include <ESPAsyncWebServer.h> // by ESP32Servo
 #include <iostream>
 #include <sstream>
 
 #if defined(ESP32)
-#include <AsyncTCP.h> // by dvarrel
+#include <AsyncTCP.h> // by ESP32Async
 #include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESPAsyncTCP.h> // by dvarrel
+#include <ESPAsyncTCP.h> // by ESP32Async
 #endif
 
 
