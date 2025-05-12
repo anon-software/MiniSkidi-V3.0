@@ -1,0 +1,338 @@
+(footprint "CR123_holder"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(descr "CR123 battery holder")
+	(tags "Battery holder, CR123")
+	(property "Reference" "REF**"
+		(at 0 -3.5 0)
+		(layer "F.SilkS")
+		(uuid "4c58c2d4-f84b-4a01-a1c2-ae1bf624e867")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "CR123_holder"
+		(at 0 2.54 0)
+		(layer "F.Fab")
+		(uuid "65669ae7-4437-480d-b1f2-d4c045d003f8")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "9e50a889-7467-4d13-8ffe-cd77e649a444")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f2e57c71-38b9-4ade-8864-95260e49b39d")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "5a73792a-391f-40bd-b99d-487d7eb31715")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -4.5 11)
+		(end -4.5 28)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "cff16149-8a2d-4084-88ff-27632b541181")
+	)
+	(fp_line
+		(start -4.5 28)
+		(end 4.5 28)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "c6710e0e-3e20-4c14-8a2d-16e2eead69db")
+	)
+	(fp_line
+		(start -3 10)
+		(end -3 11)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "b2a0dae7-a3c4-4d95-9b43-b478a130fdd9")
+	)
+	(fp_line
+		(start -3 11)
+		(end -4.5 11)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "e260fcf3-1ad4-4e76-a46d-813986c224ff")
+	)
+	(fp_line
+		(start 3 10)
+		(end -3 10)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "8c403fc7-e580-4eef-a137-bd3caf1858aa")
+	)
+	(fp_line
+		(start 3 11)
+		(end 3 10)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "061ca1a4-1342-46b0-9f8d-718711ed0d85")
+	)
+	(fp_line
+		(start 4.5 11)
+		(end 3 11)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "010922c0-bf67-4df2-91c5-ad605123f942")
+	)
+	(fp_line
+		(start 4.5 28)
+		(end 4.5 11)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "8e397e99-30fd-4a7c-b3b9-b37759d41eae")
+	)
+	(fp_line
+		(start -9.25 -2.75)
+		(end -9.25 40.25)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "7d694089-1237-4ece-bb08-f865a54d4079")
+	)
+	(fp_line
+		(start -9.25 -2.75)
+		(end 9.25 -2.75)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "aefdc674-b18e-4dbb-891a-aadd614a56ca")
+	)
+	(fp_line
+		(start -9.25 40.25)
+		(end 9.25 40.25)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "6ea21ac3-5e82-445d-bfc6-5dc4e1ef1563")
+	)
+	(fp_line
+		(start -4.3 11.2)
+		(end -2.8 11.2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "1f9f6226-9fb9-412f-b4b2-e08b77ab29cf")
+	)
+	(fp_line
+		(start -4.3 27.7)
+		(end -4.3 11.2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "d07b09a6-74f0-4035-83ac-6434f6cfd0a7")
+	)
+	(fp_line
+		(start -2.8 10.2)
+		(end 2.8 10.2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "391d4a09-9c9c-470a-868f-5f144d13ad7a")
+	)
+	(fp_line
+		(start -2.8 11.2)
+		(end -2.8 10.2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "f7835bc3-b79e-4f46-8db1-ea03d4c5109b")
+	)
+	(fp_line
+		(start 2.8 10.2)
+		(end 2.8 11.2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "fea28530-6212-4617-8aab-15b542410df1")
+	)
+	(fp_line
+		(start 2.8 11.2)
+		(end 4.3 11.2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "bb032b1e-4925-4e0b-baf2-bf09bf31fa46")
+	)
+	(fp_line
+		(start 4.3 11.2)
+		(end 4.3 27.7)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "f56e9252-40f8-4c4e-8bd0-2207e13f2a24")
+	)
+	(fp_line
+		(start 4.3 27.7)
+		(end -4.3 27.7)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "5fbf4a05-5ff7-4081-adba-56055648e117")
+	)
+	(fp_line
+		(start 9.25 -2.75)
+		(end 9.25 40.25)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "c7b1b57a-12bf-4380-b7fd-d906edb43f8d")
+	)
+	(pad "" np_thru_hole circle
+		(at 8.1 0)
+		(size 1.98 1.98)
+		(drill 1.98)
+		(layers "*.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu" "In7.Cu"
+			"In8.Cu" "In9.Cu" "In10.Cu" "In11.Cu" "In12.Cu" "In13.Cu" "In14.Cu" "In15.Cu"
+			"In16.Cu" "In17.Cu" "In18.Cu" "In19.Cu" "In20.Cu" "In21.Cu" "In22.Cu"
+			"In23.Cu" "In24.Cu" "In25.Cu" "In26.Cu" "In27.Cu" "In28.Cu" "In29.Cu"
+			"In30.Cu" "Dwgs.User"
+		)
+		(uuid "080b587d-0e3c-46b8-aac5-f4b17256e598")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 2.54 2.54)
+		(drill 1.3)
+		(layers "*.Cu" "*.Mask" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu"
+			"In7.Cu" "In8.Cu" "In9.Cu" "In10.Cu" "In11.Cu" "In12.Cu" "In13.Cu" "In14.Cu"
+			"In15.Cu" "In16.Cu" "In17.Cu" "In18.Cu" "In19.Cu" "In20.Cu" "In21.Cu"
+			"In22.Cu" "In23.Cu" "In24.Cu" "In25.Cu" "In26.Cu" "In27.Cu" "In28.Cu"
+			"In29.Cu" "In30.Cu" "F.SilkS"
+		)
+		(remove_unused_layers no)
+		(uuid "5a304c3e-f2a5-401f-b832-9eed82ca3bf1")
+	)
+	(pad "2" thru_hole circle
+		(at 0 37.82)
+		(size 2.54 2.54)
+		(drill 1.3)
+		(layers "*.Cu" "*.Mask" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu"
+			"In7.Cu" "In8.Cu" "In9.Cu" "In10.Cu" "In11.Cu" "In12.Cu" "In13.Cu" "In14.Cu"
+			"In15.Cu" "In16.Cu" "In17.Cu" "In18.Cu" "In19.Cu" "In20.Cu" "In21.Cu"
+			"In22.Cu" "In23.Cu" "In24.Cu" "In25.Cu" "In26.Cu" "In27.Cu" "In28.Cu"
+			"In29.Cu" "In30.Cu" "F.SilkS"
+		)
+		(remove_unused_layers no)
+		(uuid "da500699-2228-40d8-92e1-e6164ee665a5")
+	)
+	(model "${MYSLOCAL}/mysensors.3dshapes/mysensors_connectors.3dshapes/cr123_holder.wrl"
+		(offset
+			(xyz 0 -18.94839972 7.111999893)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(model "Pin_Headers.3dshapes/Pin_Header_Straight_1x01.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(model "Pin_Headers.3dshapes/Pin_Header_Straight_1x01.wrl"
+		(offset
+			(xyz 0 -37.84599943 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

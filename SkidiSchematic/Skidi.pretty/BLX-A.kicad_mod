@@ -1,0 +1,234 @@
+(footprint "BLX-A"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(descr "BLX-A fuse holder")
+	(property "Reference" "REF**"
+		(at -13 0 90)
+		(layer "F.SilkS")
+		(uuid "c00a3144-87fd-4a26-9e71-55d32c818299")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "BLX-A"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "abb3e513-67e1-4807-9d2c-f87d5e89fba3")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b23f2e05-e094-4b72-acd9-ef17240ee3e7")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "10baad07-abf7-4337-8724-4cc8d93630aa")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "349f3551-e489-4d78-9eb0-d8af3dcc21e4")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -11.7 -4.9)
+		(end 14.1 -4.9)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "6f251d71-c51e-48df-a2cf-3d4589680063")
+	)
+	(fp_line
+		(start -11.7 0)
+		(end -11.7 -4.9)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "9642b750-f5ce-4357-8d2e-b2c322d2c0be")
+	)
+	(fp_line
+		(start -11.7 4.9)
+		(end -11.7 0)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "e2e64b93-8592-49e2-8eaa-7bfb91ff3b62")
+	)
+	(fp_line
+		(start 14.1 -4.9)
+		(end 14.1 4.9)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "c8b8f71c-2e9a-40e0-927a-4b99552d12aa")
+	)
+	(fp_line
+		(start 14.1 4.9)
+		(end -11.7 4.9)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "622c5964-d1b5-48ae-b811-e1b5c1a437c7")
+	)
+	(fp_line
+		(start -11.9 -5.1)
+		(end -11.9 0)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "5083e782-6617-446b-abde-e6239ca17f9c")
+	)
+	(fp_line
+		(start -11.9 0)
+		(end -11.9 5.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "25a45523-95f4-4afd-87b0-f169c895bf80")
+	)
+	(fp_line
+		(start -11.9 5.1)
+		(end 14.3 5.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "26e96c8c-ccb3-4de2-b76e-55280f7899e4")
+	)
+	(fp_line
+		(start 14.3 -5.1)
+		(end -11.9 -5.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "a1f4a192-1fb0-4760-b640-f70864166154")
+	)
+	(fp_line
+		(start 14.3 5.1)
+		(end 14.3 -5.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "204f15d5-92e7-4e3f-a461-bf0ce6bc5149")
+	)
+	(fp_line
+		(start -11.6 -4.8)
+		(end 14 -4.8)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "5e09a95a-b954-4a0a-902b-82f928bb759c")
+	)
+	(fp_line
+		(start -11.6 0)
+		(end -11.6 -4.8)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "87614fc8-d0a9-4aeb-b589-fca469aded28")
+	)
+	(fp_line
+		(start -11.6 0)
+		(end -11.6 4.8)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "1f469efc-5498-4046-b91a-2bb0fb260975")
+	)
+	(fp_line
+		(start -11.6 4.8)
+		(end 14 4.8)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "e115a6c7-8313-46fd-83c1-1e1222b15ea0")
+	)
+	(fp_line
+		(start 14 4.8)
+		(end 14 -4.8)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "707a4f1d-ad3e-4098-b3d1-2918fce32ee7")
+	)
+	(pad "1" thru_hole oval
+		(at -11 0)
+		(size 1.3 2.8)
+		(drill oval 0.6 2.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(thermal_bridge_angle 45)
+		(uuid "52afd077-0a8a-4247-a183-ff468fe96914")
+	)
+	(pad "2" thru_hole oval
+		(at 11 0)
+		(size 1.3 2.8)
+		(drill oval 0.6 2.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(thermal_bridge_angle 45)
+		(uuid "2d2145aa-eb9e-477c-988c-eea9de81f147")
+	)
+)
