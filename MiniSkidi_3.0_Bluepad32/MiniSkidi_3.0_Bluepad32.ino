@@ -16,19 +16,91 @@
 #define FORWARD 1
 #define BACKWARD -1
 
-#define DEAD_ZONE 10
+#define DEAD_ZONE 20
 
 #define MOTOR_PWM_FREQ 5000
 #define MOTOR_PWM_RES 8
 
 #define DEBOUNCE_MILLIS 300
 
-Servo bucketServo; // Grabs PWM Channel 0
-Servo auxServo; // Grabs PWM Channel 1
+struct Measurement {
+  int average = 0, countAverage = 0;
+  int last = 0, countLast = 0;
+  void reset() {
+    average = 0; countAverage = 0;
+    last = 0; countLast = 0;
+  }
+};
+struct Calibration {
+  Measurement
+    axisX,
+    axisY,
+    axisRX,
+    axisRY,
+    brake,
+    throttle;
+  void reset() {
+    axisX.reset();
+    axisY.reset();
+    axisRX.reset();
+    axisRY.reset();
+    brake.reset();
+    throttle.reset();
+  }
+} calibration;
+
+struct Throttle {
+  unsigned long lastStart;
+  unsigned long lastDuration;
+  bool run(unsigned long duration) {
+    unsigned long current = millis();
+    if (current - lastStart >= lastDuration) {
+      lastStart = current;
+      lastDuration = duration;
+      return true;
+    }
+    return false;
+  }
+};
+
+Throttle rumbleThrottle;
+void rumble(ControllerPtr gamepad, int duration) {
+  if (rumbleThrottle.run(duration))
+    gamepad->playDualRumble(0,         // delayedStartMs,
+                            duration,  // durationMs,
+                            0x80,      // weakMagnitude,
+                            0xc0       // strongMagnitude
+    );
+}
+
+struct ThrottledServo: Servo {
+  Throttle servoThrottle;
+  int servo_pos = 0;
+  int lo, hi;
+  int minThrottle, maxThrottle;
+  int maxInput;
+  int deadZone;
+  void servoMove(ControllerPtr gamepad, int servoValue);
+  ThrottledServo(int servo_pos, int lo, int hi, int minThrottle, int maxThrottle, int maxInput, int deadZone):
+    servo_pos(servo_pos),
+    lo(lo),
+    hi(hi),
+    minThrottle(minThrottle),
+    maxThrottle(maxThrottle),
+    maxInput(maxInput),
+    deadZone(deadZone) {
+  }
+  void init(int pin) {
+    int channel = attach(pin);
+    Serial.printf("Attached %d %d\n", channel, servo_pos);
+    write(servo_pos);
+  }
+};
+
+ThrottledServo bucketServo(170, 10, 175, 8, 30, 511, 70); // Grabs PWM Channel 0
+ThrottledServo auxServo(150, 90, 170, 12, 30, 1023, 70); // Grabs PWM Channel 1
 
 bool light = false;
-int bucket_pos = 140;
-int claw_pos = 150;
 int light_debounce_ms = millis();
 int now = light_debounce_ms;
 
@@ -47,13 +119,35 @@ std::vector<MOTOR_PINS> motorPins =
   {21, 19, 6, 7},  //ARM_MOTOR Pins
 };
 
-void bucketTilt(int bucketServoValue)
-{
-  bucketServo.write(bucketServoValue);
+template <typename T> int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
 }
-void auxControl(int auxServoValue)
+void ThrottledServo::servoMove(ControllerPtr gamepad, int servoValue) {
+  if (abs(servoValue) <= deadZone)
+    return;
+  servoValue = constrain(servoValue, -maxInput, maxInput);
+
+  int x = map(abs(servoValue), 0, maxInput, maxThrottle, minThrottle);
+  if (servoThrottle.run(x)) {
+    int new_pos = servo_pos + sgn(servoValue);
+    Serial.printf("Servo %d %d %d %d %lu\n", servoValue, x, servo_pos, new_pos, millis());
+    if (new_pos > hi | new_pos < lo) {
+      rumble(gamepad, 1000/*ms*/);
+    }
+    else if (new_pos != servo_pos) {
+      servo_pos = new_pos;
+      Serial.printf("servo_pos %d\n", servo_pos);
+      write(servo_pos);
+    }
+  }
+}
+void bucketTilt(ControllerPtr gamepad, int bucketServoValue)
 {
-  auxServo.write(auxServoValue);
+  bucketServo.servoMove(gamepad, bucketServoValue);
+}
+void auxControl(ControllerPtr gamepad, int auxServoValue)
+{
+  auxServo.servoMove(gamepad, auxServoValue);
 }
 void lightControl()
 {
@@ -91,12 +185,8 @@ void setUpPinModes()
     ledcWrite(motorPins[i].channel2, 0);
   }
 
-  bucketServo.attach(bucketServoPin);
-  auxServo.attach(auxServoPin);
-  Serial.println(bucketServo.attached());
-  Serial.println(auxServo.attached());
-  auxControl(claw_pos);
-  bucketTilt(bucket_pos);
+  bucketServo.init(bucketServoPin);
+  auxServo.init(auxServoPin);
 
   pinMode(lightPin1, OUTPUT);
   pinMode(lightPin2, OUTPUT);
@@ -192,118 +282,148 @@ void stopAllMotors() {
   }
 }
 
-void processGamepad(ControllerPtr gamepad) {
-  // Set motor speeds
-  int left_yaxis = gamepad->axisY();
-  if (abs(left_yaxis) > DEAD_ZONE) {
-    // update left motor speed
-    int mapped_ly = map(left_yaxis, -512, 512, -255, 255);
-    if (mapped_ly < 0) {
-      ledcWrite(motorPins[1].channel1, abs(mapped_ly));
-      ledcWrite(motorPins[1].channel2, 0);
-    } else {
-      ledcWrite(motorPins[1].channel1, 0);
-      ledcWrite(motorPins[1].channel2, mapped_ly);
-    }
-  } else {
-    // stop motors
-    ledcWrite(motorPins[1].channel1, 0);
-    ledcWrite(motorPins[1].channel2, 0);
+void calibrateOne(Measurement &m, int t) {
+  if (m.last == t)
+    m.countLast++;
+  else
+    m.countLast = 0;
+  m.last = t;
+  if (m.countLast >= 100) {
+    long x = ((long)m.countLast * (long)m.last + (long)m.countAverage * (long)m.average) / ((long)m.countLast + (long)m.countAverage);
+    m.average = x;
+    m.countAverage += m.countLast;
+    m.countLast = 0;
   }
+}
+void calibrateAll(ControllerPtr gamepad) {
+  calibrateOne(calibration.axisX, gamepad->axisX());
+  calibrateOne(calibration.axisY, gamepad->axisY());
+  calibrateOne(calibration.axisRX, gamepad->axisRX());
+  calibrateOne(calibration.axisRY, gamepad->axisRY());
+  calibrateOne(calibration.brake, gamepad->brake());
+  calibrateOne(calibration.throttle, gamepad->throttle());
+  printf(
+          "Calibration axis L: %4li-%4li, %4li-%4li, axis R: %4li-%4li, %4li-%4li, "
+          "brake: %4ld-%4li, throttle: %4li-%4li\n",
+          calibration.axisX.average,
+          calibration.axisX.last,
+          calibration.axisY.average,
+          calibration.axisY.last,
+          calibration.axisRX.average,
+          calibration.axisRX.last,
+          calibration.axisRY.average,
+          calibration.axisRY.last,
+          calibration.brake.average,
+          calibration.brake.last,
+          calibration.throttle.average,
+          calibration.throttle.last
+    );
+}
 
-  int right_yaxis = gamepad->axisRY();
-  if (abs(right_yaxis) > DEAD_ZONE) {
-    // update right motor speed
-    int mapped_ry = map(right_yaxis, -512, 512, -255, 255);
-    if (mapped_ry < 0) {
-      ledcWrite(motorPins[0].channel1, abs(mapped_ry));
-      ledcWrite(motorPins[0].channel2, 0);
-    } else {
-      ledcWrite(motorPins[0].channel1, 0);
-      ledcWrite(motorPins[0].channel2, mapped_ry);
-    }
-  } else {
-    // stop motors
-    ledcWrite(motorPins[0].channel1, 0);
-    ledcWrite(motorPins[0].channel2, 0);
+void processGamepad(ControllerPtr gamepad) {
+  static bool calibrationInProgress = false;
+  if (calibrationInProgress) {
+    calibrateAll(gamepad);
   }
-  // set arm motor
-  int right_xaxis = gamepad->axisRX();
-  if (abs(right_xaxis) > DEAD_ZONE) {
-    int mapped_rx = map(right_xaxis, -512, 512, -255, 255);
-    if (mapped_rx < 0) {
-      ledcWrite(motorPins[2].channel1, 0);
-      ledcWrite(motorPins[2].channel2, abs(mapped_rx));
+  else {
+    // Set motor speeds
+    int left_yaxis = gamepad->axisY();
+    if (abs(left_yaxis) > DEAD_ZONE) {
+      // update left motor speed
+      int mapped_ly = map(left_yaxis, -512, 512, -255, 255);
+      if (mapped_ly < 0) {
+        ledcWrite(motorPins[1].channel1, abs(mapped_ly));
+        ledcWrite(motorPins[1].channel2, 0);
+      } else {
+        ledcWrite(motorPins[1].channel1, 0);
+        ledcWrite(motorPins[1].channel2, mapped_ly);
+      }
     } else {
-      ledcWrite(motorPins[2].channel1, mapped_rx);
+      // stop motors
+      ledcWrite(motorPins[1].channel1, 0);
+      ledcWrite(motorPins[1].channel2, 0);
+    }
+
+    int right_yaxis = gamepad->axisRY();
+    if (abs(right_yaxis) > DEAD_ZONE) {
+      // update right motor speed
+      int mapped_ry = map(right_yaxis, -512, 512, -255, 255);
+      if (mapped_ry < 0) {
+        ledcWrite(motorPins[0].channel1, abs(mapped_ry));
+        ledcWrite(motorPins[0].channel2, 0);
+      } else {
+        ledcWrite(motorPins[0].channel1, 0);
+        ledcWrite(motorPins[0].channel2, mapped_ry);
+      }
+    } else {
+      // stop motors
+      ledcWrite(motorPins[0].channel1, 0);
+      ledcWrite(motorPins[0].channel2, 0);
+    }
+    // set arm motor
+    int right_xaxis = gamepad->axisRX();
+    if (abs(right_xaxis) > DEAD_ZONE) {
+      int mapped_rx = map(right_xaxis, -512, 512, -255, 255);
+      if (mapped_rx < 0) {
+        ledcWrite(motorPins[2].channel1, 0);
+        ledcWrite(motorPins[2].channel2, abs(mapped_rx));
+      } else {
+        ledcWrite(motorPins[2].channel1, mapped_rx);
+        ledcWrite(motorPins[2].channel2, 0);
+      }
+    } else {
+      // stop motors
+      ledcWrite(motorPins[2].channel1, 0);
       ledcWrite(motorPins[2].channel2, 0);
     }
-  } else {
-    // stop motors
-    ledcWrite(motorPins[2].channel1, 0);
-    ledcWrite(motorPins[2].channel2, 0);
-  }
-  // set bucket servo
-  int left_xaxis = gamepad->axisX();
-  if (abs(left_xaxis) > DEAD_ZONE) {
-    int temp_bucket_pos = bucket_pos + map(left_xaxis, -512, 512, -2, 2);
-    if (temp_bucket_pos > 175 | temp_bucket_pos < 10) {
-      gamepad->setRumble(0xc0 /* force */, 0x50 /* duration */);
+    // set bucket servo
+    int left_xaxis = gamepad->axisX() - calibration.axisX.average;
+    bucketTilt(gamepad, left_xaxis);
+    // set claw servo
+    int claw_raw = gamepad->throttle() - gamepad->brake();
+    auxControl(gamepad, claw_raw);
+    // Set lights
+    if (gamepad->a()) {
+      lightControl();
     }
-    int new_bucket_pos = constrain(temp_bucket_pos, 10, 175);
-    if (new_bucket_pos != bucket_pos) {
-      bucket_pos = new_bucket_pos;
-      bucketTilt(bucket_pos);
-    }
-  } 
-  // set claw servo
-  int claw_raw = gamepad->throttle() - gamepad->brake();
-  if (abs(claw_raw) > DEAD_ZONE) {
-    int temp_claw_pos = claw_pos - map(claw_raw, -1024, 1024, -3, 3);
-    if (temp_claw_pos > 170 | temp_claw_pos < 90) {
-      gamepad->setRumble(0xc0 /* force */, 0x50 /* duration */);
-    }
-    int new_claw_pos = constrain(temp_claw_pos, 90, 170);
-    if (new_claw_pos != claw_pos) {
-      claw_pos = new_claw_pos;
-      auxControl(claw_pos);
-    }
-  } 
-  // Set lights
-  if (gamepad->a()) {
-    lightControl();
-  }
 
-  if (gamepad->x()) {
-    // Duration: 255 is ~2 seconds
-    gamepad->setRumble(0xc0 /* force */, 0x50 /* duration */);
+    // Rumble the controller
+    if (gamepad->x()) {
+      rumble(gamepad, 1000/*ms*/);
+    }
+    char buf[256];
+    snprintf(buf, sizeof(buf) - 1,
+            "idx=%d, dpad: 0x%02x, buttons: 0x%04x, "
+            "axis L: %4li, %4li, axis R: %4li, %4li, "
+            "brake: %4ld, throttle: %4li, misc: 0x%02x, "
+            "gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d, "
+            "battery: %d",
+            gamepad->index(),        // Gamepad Index
+            gamepad->dpad(),         // DPAD
+            gamepad->buttons(),      // bitmask of pressed buttons
+            gamepad->axisX(),        // (-511 - 512) left X Axis
+            gamepad->axisY(),        // (-511 - 512) left Y axis
+            gamepad->axisRX(),       // (-511 - 512) right X axis
+            gamepad->axisRY(),       // (-511 - 512) right Y axis
+            gamepad->brake(),        // (0 - 1023): brake button
+            gamepad->throttle(),     // (0 - 1023): throttle (AKA gas) button
+            gamepad->miscButtons(),  // bitmak of pressed "misc" buttons
+            gamepad->gyroX(),      // Gyro X
+            gamepad->gyroY(),      // Gyro Y
+            gamepad->gyroZ(),      // Gyro Z
+            gamepad->accelX(),     // Accelerometer X
+            gamepad->accelY(),     // Accelerometer Y
+            gamepad->accelZ(),     // Accelerometer Z
+            gamepad->battery()       // 0=Unknown, 1=empty, 255=full
+    );
+    Serial.println(buf);
   }
-  char buf[256];
-  snprintf(buf, sizeof(buf) - 1,
-           "idx=%d, dpad: 0x%02x, buttons: 0x%04x, "
-           "axis L: %4li, %4li, axis R: %4li, %4li, "
-           "brake: %4ld, throttle: %4li, misc: 0x%02x, "
-           "gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d, "
-           "battery: %d",
-           gamepad->index(),        // Gamepad Index
-           gamepad->dpad(),         // DPAD
-           gamepad->buttons(),      // bitmask of pressed buttons
-           gamepad->axisX(),        // (-511 - 512) left X Axis
-           gamepad->axisY(),        // (-511 - 512) left Y axis
-           gamepad->axisRX(),       // (-511 - 512) right X axis
-           gamepad->axisRY(),       // (-511 - 512) right Y axis
-           gamepad->brake(),        // (0 - 1023): brake button
-           gamepad->throttle(),     // (0 - 1023): throttle (AKA gas) button
-           gamepad->miscButtons(),  // bitmak of pressed "misc" buttons
-           gamepad->gyroX(),      // Gyro X
-           gamepad->gyroY(),      // Gyro Y
-           gamepad->gyroZ(),      // Gyro Z
-           gamepad->accelX(),     // Accelerometer X
-           gamepad->accelY(),     // Accelerometer Y
-           gamepad->accelZ(),     // Accelerometer Z
-           gamepad->battery()       // 0=Unknown, 1=empty, 255=full
-  );
-  Serial.println(buf);
+  if (gamepad->y()) {
+    calibrationInProgress = !calibrationInProgress;
+    if (calibrationInProgress)
+      calibration.reset();
+    delay(DEBOUNCE_MILLIS);
+  }
 }
 
 void loop() {
