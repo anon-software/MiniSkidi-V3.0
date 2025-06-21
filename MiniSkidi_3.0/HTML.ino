@@ -32,6 +32,8 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
 
     .slidecontainer {
       width: 100%;
+      display: flex;
+      align-items: center;
     }
 
     .slider {
@@ -110,7 +112,7 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
         <td style="text-align:left;font-size:25px"><b>Bucket:</b></td>
         <td colspan=2>
          <div class="slidecontainer">
-            <input type="range" min="10" max="180" value="90" class="slider" id="Bucket" oninput='sendButtonInput("Bucket",value)'>
+            <span>Down</span><input type="range" min="10" max="175" value="140" class="slider" id="Bucket" oninput='sendButtonInput("Bucket",value)'><span>Up</span>
           </div>
         </td>
       </tr>  
@@ -121,7 +123,7 @@ const char* htmlHomePage PROGMEM = R"HTMLHOMEPAGE(
         <td style="text-align:left;font-size:25px"><b>AUX:</b></td>
         <td colspan=2>
          <div class="slidecontainer">
-            <input type="range" min="10" max="180" value="90" class="slider" id="AUX" oninput='sendButtonInput("AUX",value)'>
+            <span>Close</span><input type="range" min="90" max="170" value="150" class="slider" id="AUX" oninput='sendButtonInput("AUX",value)'><span>Open</span>
           </div>
         </td>
       </tr> 
