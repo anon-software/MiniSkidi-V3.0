@@ -320,6 +320,55 @@ void calibrateAll(ControllerPtr gamepad) {
     );
 }
 
+/*
+Traditionl control:
+Left X - Bucket Tilt
+Left Y - Proportional Left Track Forward/Back
+Right X - Arm Up/Down
+Right Y - Proportional Right Track Foward Back
+
+Simplified control:
+Left X - Move Forward/Backward
+Left Y - Turn Left/Right
+Right X - Arm Up/Down
+Right Y - Bucket Tilt
+*/
+bool traditionalControl = true;
+
+void propulsionControl(ControllerPtr gamepad, int &left_motor, int &right_motor) {
+  if (traditionalControl) {
+    left_motor = gamepad->axisY() - calibration.axisY.average;
+    right_motor = gamepad->axisRY() - calibration.axisRY.average;
+    if (abs(left_motor) <= DEAD_ZONE)
+      left_motor = 0;
+    if (abs(right_motor) <= DEAD_ZONE)
+      right_motor = 0;
+  }
+  else {
+    int speed = gamepad->axisY() - calibration.axisY.average;
+    if (abs(speed) <= DEAD_ZONE)
+      speed = 0;
+    int steer = gamepad->axisX() - calibration.axisX.average;
+    if (abs(steer) <= DEAD_ZONE)
+      steer = 0;
+    left_motor = speed - steer;
+    left_motor = constrain(left_motor, -512, 512);
+    right_motor = speed + steer;
+    right_motor = constrain(right_motor, -512, 512);
+  }
+}
+
+int armControl(ControllerPtr gamepad) {
+  int arm_motor = gamepad->axisRX() - calibration.axisRX.average;
+  if (abs(arm_motor) <= DEAD_ZONE)
+    arm_motor = 0;
+  return arm_motor;
+}
+
+int bucketControl(ControllerPtr gamepad) {
+  return traditionalControl? gamepad->axisX() - calibration.axisX.average: gamepad->axisRY() - calibration.axisRY.average;
+}
+
 void processGamepad(ControllerPtr gamepad) {
   static bool calibrationInProgress = false;
   if (calibrationInProgress) {
@@ -327,61 +376,46 @@ void processGamepad(ControllerPtr gamepad) {
   }
   else {
     // Set motor speeds
-    int left_yaxis = gamepad->axisY();
-    if (abs(left_yaxis) > DEAD_ZONE) {
-      // update left motor speed
-      int mapped_ly = map(left_yaxis, -512, 512, -255, 255);
-      if (mapped_ly < 0) {
-        ledcWrite(motorPins[1].channel1, abs(mapped_ly));
-        ledcWrite(motorPins[1].channel2, 0);
-      } else {
-        ledcWrite(motorPins[1].channel1, 0);
-        ledcWrite(motorPins[1].channel2, mapped_ly);
-      }
-    } else {
-      // stop motors
-      ledcWrite(motorPins[1].channel1, 0);
+    int left_motor;
+    int right_motor;
+    propulsionControl(gamepad, left_motor, right_motor);
+
+    // update left motor speed
+    int mapped_left = map(left_motor, -512, 512, -255, 255);
+    if (mapped_left < 0) {
+      ledcWrite(motorPins[1].channel1, abs(mapped_left));
       ledcWrite(motorPins[1].channel2, 0);
+    } else {
+      ledcWrite(motorPins[1].channel1, 0);
+      ledcWrite(motorPins[1].channel2, mapped_left);
     }
 
-    int right_yaxis = gamepad->axisRY();
-    if (abs(right_yaxis) > DEAD_ZONE) {
-      // update right motor speed
-      int mapped_ry = map(right_yaxis, -512, 512, -255, 255);
-      if (mapped_ry < 0) {
-        ledcWrite(motorPins[0].channel1, abs(mapped_ry));
-        ledcWrite(motorPins[0].channel2, 0);
-      } else {
-        ledcWrite(motorPins[0].channel1, 0);
-        ledcWrite(motorPins[0].channel2, mapped_ry);
-      }
-    } else {
-      // stop motors
-      ledcWrite(motorPins[0].channel1, 0);
+    // update right motor speed
+    int mapped_right = map(right_motor, -512, 512, -255, 255);
+    if (mapped_right < 0) {
+      ledcWrite(motorPins[0].channel1, abs(mapped_right));
       ledcWrite(motorPins[0].channel2, 0);
-    }
-    // set arm motor
-    int right_xaxis = gamepad->axisRX();
-    if (abs(right_xaxis) > DEAD_ZONE) {
-      int mapped_rx = map(right_xaxis, -512, 512, -255, 255);
-      if (mapped_rx < 0) {
-        ledcWrite(motorPins[2].channel1, 0);
-        ledcWrite(motorPins[2].channel2, abs(mapped_rx));
-      } else {
-        ledcWrite(motorPins[2].channel1, mapped_rx);
-        ledcWrite(motorPins[2].channel2, 0);
-      }
     } else {
-      // stop motors
+      ledcWrite(motorPins[0].channel1, 0);
+      ledcWrite(motorPins[0].channel2, mapped_right);
+    }
+
+    // set arm motor
+    int arm_motor = armControl(gamepad);
+    int mapped_arm = map(arm_motor, -512, 512, -255, 255);
+    if (mapped_arm < 0) {
       ledcWrite(motorPins[2].channel1, 0);
+      ledcWrite(motorPins[2].channel2, abs(mapped_arm));
+    } else {
+      ledcWrite(motorPins[2].channel1, mapped_arm);
       ledcWrite(motorPins[2].channel2, 0);
     }
     // set bucket servo
-    int left_xaxis = gamepad->axisX() - calibration.axisX.average;
-    bucketTilt(gamepad, left_xaxis);
+    int bucket_move = bucketControl(gamepad) - calibration.axisX.average;
+    bucketTilt(gamepad, bucket_move);
     // set claw servo
-    int claw_raw = gamepad->throttle() - gamepad->brake();
-    auxControl(gamepad, claw_raw);
+    int claw_move = gamepad->throttle() - gamepad->brake();
+    auxControl(gamepad, claw_move);
     // Set lights
     if (gamepad->a()) {
       lightControl();
@@ -391,6 +425,13 @@ void processGamepad(ControllerPtr gamepad) {
     if (gamepad->x()) {
       rumble(gamepad, 1000/*ms*/);
     }
+
+    // Toggle traditional/simplified control
+    if (gamepad->b()) {
+      traditionalControl = !traditionalControl;
+      delay(DEBOUNCE_MILLIS);
+    }
+
     char buf[256];
     snprintf(buf, sizeof(buf) - 1,
             "idx=%d, dpad: 0x%02x, buttons: 0x%04x, "
