@@ -22,6 +22,7 @@
 #define MOTOR_PWM_RES 8
 
 #define DEBOUNCE_MILLIS 300
+#define RUBLE_MILLIS 1000
 
 struct Measurement {
   int average = 0, countAverage = 0;
@@ -48,6 +49,29 @@ struct Calibration {
     throttle.reset();
   }
 } calibration;
+
+struct Debouncer {
+  std::string name;
+  unsigned long last = 0;
+  unsigned long debounce;
+  bool (Controller::*fptr)() const;
+  bool press(ControllerPtr gamepad) {
+    unsigned long now = millis();
+    if (now - last > debounce) {
+      if ((gamepad->*fptr)()) {
+        last = now;
+        if (name.length()>0)
+          Serial.printf("button %s\n", name.c_str());
+        return true;
+      }
+    }
+    return false;
+  }
+  Debouncer(bool (Controller::*fptr)() const, long debounce = DEBOUNCE_MILLIS): fptr(fptr), debounce(debounce) {}
+  Debouncer(const std::string &name, bool (Controller::*fptr)() const, long debounce = DEBOUNCE_MILLIS): Debouncer(fptr, debounce) {
+    this->name = name;
+  }
+};
 
 struct Throttle {
   unsigned long lastStart;
@@ -101,8 +125,9 @@ ThrottledServo bucketServo(170, 10, 175, 8, 30, 511, 70); // Grabs PWM Channel 0
 ThrottledServo auxServo(150, 90, 170, 12, 30, 1023, 70); // Grabs PWM Channel 1
 
 bool light = false;
-int light_debounce_ms = millis();
-int now = light_debounce_ms;
+Debouncer x("rumble", &Controller::x);
+Debouncer b("control", &Controller::b);
+Debouncer a("light", &Controller::a);
 
 struct MOTOR_PINS
 {
@@ -132,7 +157,7 @@ void ThrottledServo::servoMove(ControllerPtr gamepad, int servoValue) {
     int new_pos = servo_pos + sgn(servoValue);
     Serial.printf("Servo %d %d %d %d %lu\n", servoValue, x, servo_pos, new_pos, millis());
     if (new_pos > hi | new_pos < lo) {
-      rumble(gamepad, 1000/*ms*/);
+      rumble(gamepad, RUBLE_MILLIS);
     }
     else if (new_pos != servo_pos) {
       servo_pos = new_pos;
@@ -151,24 +176,18 @@ void auxControl(ControllerPtr gamepad, int auxServoValue)
 }
 void lightControl()
 {
-  now = millis();
-  if (now - light_debounce_ms > DEBOUNCE_MILLIS) {
-    light_debounce_ms = now;
-    if (!light)
-    {
-      digitalWrite(lightPin1, HIGH);
-      digitalWrite(lightPin2, LOW);
-      light = true;
-    }
-    else
-    {
-      digitalWrite(lightPin1, LOW);
-      digitalWrite(lightPin2, LOW);
-      light = false;
-    }
-
+  if (!light)
+  {
+    digitalWrite(lightPin1, HIGH);
+    digitalWrite(lightPin2, LOW);
+    light = true;
   }
-
+  else
+  {
+    digitalWrite(lightPin1, LOW);
+    digitalWrite(lightPin2, LOW);
+    light = false;
+  }
 }
 
 void setUpPinModes()
@@ -417,19 +436,18 @@ void processGamepad(ControllerPtr gamepad) {
     int claw_move = gamepad->throttle() - gamepad->brake();
     auxControl(gamepad, claw_move);
     // Set lights
-    if (gamepad->a()) {
+    if (a.press(gamepad)) {
       lightControl();
     }
 
     // Rumble the controller
-    if (gamepad->x()) {
-      rumble(gamepad, 1000/*ms*/);
+    if (x.press(gamepad)) {
+      rumble(gamepad, RUBLE_MILLIS);
     }
 
     // Toggle traditional/simplified control
-    if (gamepad->b()) {
+    if (b.press(gamepad)) {
       traditionalControl = !traditionalControl;
-      delay(DEBOUNCE_MILLIS);
     }
 
     char buf[256];
