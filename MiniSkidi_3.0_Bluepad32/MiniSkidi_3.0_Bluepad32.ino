@@ -364,15 +364,21 @@ void propulsionControl(ControllerPtr gamepad, int &left_motor, int &right_motor)
       right_motor = 0;
   }
   else {
-    int speed = gamepad->axisY() - calibration.axisY.average;
+    int speed = gamepad->axisY() - calibration.axisY.average; // Forward -512, Back 511
     if (abs(speed) <= DEAD_ZONE)
       speed = 0;
-    int steer = gamepad->axisX() - calibration.axisX.average;
+    int steer = gamepad->axisX() - calibration.axisX.average; // Left -512, Right 511
     if (abs(steer) <= DEAD_ZONE)
       steer = 0;
-    left_motor = speed - steer;
+    if (speed < 0) {
+      left_motor = speed - steer;
+      right_motor = speed + steer;
+    }
+    else {
+      left_motor = speed + steer;
+      right_motor = speed - steer;
+    }
     left_motor = constrain(left_motor, -512, 512);
-    right_motor = speed + steer;
     right_motor = constrain(right_motor, -512, 512);
   }
 }
@@ -402,7 +408,7 @@ void processGamepad(ControllerPtr gamepad) {
     // update left motor speed
     int mapped_left = map(left_motor, -512, 512, -255, 255);
     if (mapped_left < 0) {
-      ledcWrite(motorPins[1].channel1, abs(mapped_left));
+      ledcWrite(motorPins[1].channel1, -mapped_left);
       ledcWrite(motorPins[1].channel2, 0);
     } else {
       ledcWrite(motorPins[1].channel1, 0);
@@ -412,7 +418,7 @@ void processGamepad(ControllerPtr gamepad) {
     // update right motor speed
     int mapped_right = map(right_motor, -512, 512, -255, 255);
     if (mapped_right < 0) {
-      ledcWrite(motorPins[0].channel1, abs(mapped_right));
+      ledcWrite(motorPins[0].channel1, -mapped_right);
       ledcWrite(motorPins[0].channel2, 0);
     } else {
       ledcWrite(motorPins[0].channel1, 0);
