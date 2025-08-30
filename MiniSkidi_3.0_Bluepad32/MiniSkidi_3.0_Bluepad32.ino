@@ -371,14 +371,12 @@ void propulsionControl(ControllerPtr gamepad, int &left_motor, int &right_motor)
     int steer = gamepad->axisX() - calibration.axisX.average; // Left -512, Right 511
     if (abs(steer) <= DEAD_ZONE)
       steer = 0;
-    if (speed < 0) {
-      left_motor = speed - steer;
-      right_motor = speed + steer;
-    }
-    else {
-      left_motor = speed + steer;
-      right_motor = speed - steer;
-    }
+
+    double angle = atan2(speed, steer);
+    double amplitude = sqrt(steer*steer + speed*speed);
+    left_motor = (angle >= PI/2. ? 1 : (angle <= 0 && angle >= -PI/2.) ? -1 : angle > 0 ? cos(PI - angle * 2) : cos(angle * 2)) * amplitude;
+    right_motor = ((angle >= 0 && angle <= PI/2.) ? 1 : (angle <= -PI/2. ? -1 : angle > PI/2. ? cos(PI - angle * 2) : cos(angle * 2))) * amplitude;
+
     left_motor = constrain(left_motor, -512, 512);
     right_motor = constrain(right_motor, -512, 512);
   }
