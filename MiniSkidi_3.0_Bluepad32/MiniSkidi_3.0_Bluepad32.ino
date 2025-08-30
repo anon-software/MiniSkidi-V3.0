@@ -128,6 +128,7 @@ bool light = false;
 Debouncer x("rumble", &Controller::x);
 Debouncer b("control", &Controller::b);
 Debouncer a("light", &Controller::a);
+Debouncer y("calibration", &Controller::y);
 
 struct MOTOR_PINS
 {
@@ -455,9 +456,8 @@ void processGamepad(ControllerPtr gamepad) {
     if (b.press(gamepad)) {
       traditionalControl = !traditionalControl;
     }
-
-    char buf[256];
-    snprintf(buf, sizeof(buf) - 1,
+/*
+    Serial.printf(
             "idx=%d, dpad: 0x%02x, buttons: 0x%04x, "
             "axis L: %4li, %4li, axis R: %4li, %4li, "
             "brake: %4ld, throttle: %4li, misc: 0x%02x, "
@@ -481,13 +481,12 @@ void processGamepad(ControllerPtr gamepad) {
             gamepad->accelZ(),     // Accelerometer Z
             gamepad->battery()       // 0=Unknown, 1=empty, 255=full
     );
-    Serial.println(buf);
+*/
   }
-  if (gamepad->y()) {
+  if (y.press(gamepad)) {
     calibrationInProgress = !calibrationInProgress;
     if (calibrationInProgress)
       calibration.reset();
-    delay(DEBOUNCE_MILLIS);
   }
 }
 
@@ -503,6 +502,6 @@ void loop() {
     } else {
       stopAllMotors();
     }
+    vTaskDelay(1);
   }
-  vTaskDelay(1);
 }
